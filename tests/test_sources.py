@@ -33,13 +33,33 @@ def test_workday_conversion():
     }
 
 
-def test_workday_falls_back_to_path_id_and_collapses_multiple_locations():
-    posting = {"title": "Analyst", "externalPath": "/job/x/Analyst_R77-1",
+def test_workday_falls_back_to_path_id_and_resolves_multiple_locations():
+    posting = {"title": "Analyst", "externalPath": "/job/McLean-VA/Analyst_R77-1",
                "locationsText": "3 Locations", "postedOn": "Posted 30+ Days Ago"}
     row = convert("workday", posting, WORKDAY, RUN)
     assert row["source_id"] == "R77-1"
-    assert row["location"] == "Multiple locations"
+    assert row["location"] == "McLean VA (+2 more)"  # primary place from the URL path
     assert row["posted_date"] == ""  # 30+ days has no usable date
+
+
+@pytest.mark.parametrize(
+    "path,count,expected",
+    [
+        ("/job/FL---Tampa/Wealth-Advisor_R1", 9, "FL - Tampa (+8 more)"),
+        ("/job/New-York-NY/Analyst_R1", 3, "New York NY (+2 more)"),
+        ("/job/Boston-Massachusetts/Threat_R1", 4, "Boston Massachusetts (+3 more)"),
+        ("/job/Krakow-Poland/Manager_R1", 2, "Krakow Poland (+1 more)"),
+        ("/job/Multiple-Locations/Analyst_R1", 5, "Multiple locations"),
+        ("/job", 5, "Multiple locations"),
+    ],
+)
+def test_workday_primary_location_from_path(path, count, expected):
+    assert sources.workday_primary_location(path, count) == expected
+
+
+def test_single_location_text_is_kept_as_is():
+    posting = {"title": "A", "externalPath": "/job/Dallas-TX/A_R2", "locationsText": "Dallas, TX"}
+    assert convert("workday", posting, WORKDAY, RUN)["location"] == "Dallas, TX"
 
 
 @pytest.mark.parametrize(

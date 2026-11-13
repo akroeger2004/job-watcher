@@ -233,13 +233,27 @@ def workday_posted_date(text, run_date):
     return (run_date - timedelta(days=days)).isoformat()
 
 
+def workday_primary_location(path, count):
+    """A posting listed in several places only says '3 Locations', but its URL path
+    starts with its primary location ('/job/McLean-VA/...', '/job/FL---Tampa/...').
+    Return that place plus how many others there are, or 'Multiple locations'."""
+    parts = path.split("/")
+    place = parts[2] if len(parts) > 2 else ""
+    place = " - ".join(piece.replace("-", " ").strip() for piece in place.split("---"))
+    place = re.sub(r"\s+", " ", place).strip()
+    if not place or place.lower() == "multiple locations":
+        return "Multiple locations"
+    return f"{place} (+{count - 1} more)" if count > 1 else place
+
+
 def convert_workday(posting, params, run_date):
     path = posting["externalPath"]
     bullets = posting.get("bulletFields") or []
     source_id = bullets[0] if bullets else path.rsplit("_", 1)[-1]
     location = posting.get("locationsText") or ""
-    if re.fullmatch(r"\d+ Locations?", location.strip()):
-        location = "Multiple locations"
+    many = re.fullmatch(r"(\d+) Locations?", location.strip())
+    if many:
+        location = workday_primary_location(path, int(many.group(1)))
     t, n, site = params["tenant"], params["wd"], params["site"]
     return {
         "source_id": source_id,
