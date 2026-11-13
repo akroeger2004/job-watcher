@@ -35,7 +35,8 @@ App.boot('browse', function (root, data) {
       list = Array.from(shortlist).map(function (id) { return byId[id]; }).filter(Boolean)
         .filter(function (r) { return !state.q || r.title.toLowerCase().indexOf(state.q.toLowerCase()) >= 0; });
     } else {
-      list = open.filter(matches);
+      // wrap the call: filter() would otherwise pass the array index as ignoreRegion
+      list = open.filter(function (r) { return matches(r, false); });
     }
     const dir = state.sort === 'new' ? -1 : 1;
     return list.sort(function (a, b) {
