@@ -53,17 +53,18 @@ App.boot('market', function (root, data) {
     const note = el('p');
     const wrap = el('section', { class: 'market-section' });
     const h = el('h2');
-    let role = 'all';
+    let role = 'all', where = 'all';
     function draw() {
-      const items = Calc.openByEmployer(rows, role === 'mine');
+      const items = Calc.openByEmployer(rows, role === 'mine', where);
       const total = sum(items.map(function (i) { return i.count; }));
       h.textContent = items.length
         ? items[0].name + ' has the most open postings (' + fmt(items[0].count) + ' of ' + fmt(total) + ')'
         : 'No open postings match';
-      note.textContent = 'Open postings per employer as of the last run (' + last + ')' + (role === 'mine' ? ', counting only titles in your role.' : ', counting every posting the employer\'s board returns.');
+      note.textContent = 'Open postings per employer as of the last run (' + last + ')' + (where === 'us' ? ', counting only postings located in the United States' : ', counting every posting the employer\'s board returns') + (role === 'mine' ? ', and only titles in your role.' : '.');
       holder.replaceChildren(Charts.bars({ title: role === 'mine' ? 'Your role' : 'All postings', subtitle: 'Open per employer', items: items, color: role === 'mine' ? 'role' : 'all', valueHeader: 'Open postings', emptyText: 'No open postings in your role yet.' }));
     }
-    wrap.append(h, note, el('div', { class: 'scope' }, App.switcher([{ value: 'all', label: 'All postings' }, { value: 'mine', label: 'My role' }], role, function (v) { role = v; draw(); }, 'Which postings')), holder);
+    wrap.append(h, note, el('div', { class: 'scope' }, App.switcher([{ value: 'all', label: 'All postings' }, { value: 'mine', label: 'My role' }], role, function (v) { role = v; draw(); }, 'Which postings'),
+      App.switcher([{ value: 'all', label: 'Worldwide' }, { value: 'us', label: 'United States' }], where, function (v) { where = v; draw(); }, 'Where')), holder);
     root.append(wrap);
     draw();
   })();
@@ -101,18 +102,18 @@ App.boot('market', function (root, data) {
     const holder = el('div'), h = el('h2'), note = el('p');
     const wrap = el('section', { class: 'market-section' });
     let region = 'all', role = 'all';
-    const names = { all: 'everywhere', dfw: 'the Dallas-Fort Worth area', nwa: 'Northwest Arkansas', ar: 'Arkansas' };
+    const names = { all: 'the whole world', us: 'the United States', dfw: 'the Dallas-Fort Worth area', nwa: 'Northwest Arkansas', ar: 'Arkansas' };
     function draw() {
       const items = Calc.topLocations(rows, { region: region, roleOnly: role === 'mine', n: 10 });
       h.textContent = items.length ? items[0].name + ' leads with ' + fmt(items[0].count) + ' open postings' : 'No open postings in ' + names[region];
       note.textContent = 'The ten locations with the most open postings in ' + names[region] + (role === 'mine' ? ', counting only titles in your role' : '') +
-        '. Locations are shown as each employer\'s board writes them, and postings listed in several places are grouped as "Multiple locations".';
+        '. Locations are shown as each employer\'s board writes them; a posting listed in several places is counted under its first location.';
       holder.replaceChildren(Charts.bars({ title: role === 'mine' ? 'Your role' : 'All postings', subtitle: 'Top locations among open postings', items: items,
         color: role === 'mine' ? 'role' : 'all', valueHeader: 'Open postings', emptyText: 'Nothing open here yet.' }));
     }
     wrap.append(h, note,
       el('div', { class: 'scope' },
-        App.switcher([{ value: 'all', label: 'Everywhere' }, { value: 'dfw', label: 'DFW' }, { value: 'nwa', label: 'NW Arkansas' }, { value: 'ar', label: 'All Arkansas' }], region, function (v) { region = v; draw(); }, 'Region'),
+        App.switcher([{ value: 'all', label: 'Worldwide' }, { value: 'us', label: 'United States' }, { value: 'dfw', label: 'DFW' }, { value: 'nwa', label: 'NW Arkansas' }, { value: 'ar', label: 'All Arkansas' }], region, function (v) { region = v; draw(); }, 'Region'),
         App.switcher([{ value: 'all', label: 'All postings' }, { value: 'mine', label: 'My role' }], role, function (v) { role = v; draw(); }, 'Which postings')),
       holder);
     root.append(wrap);

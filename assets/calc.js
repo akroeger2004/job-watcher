@@ -76,8 +76,43 @@
     nwa: /\b(bentonville|rogers|springdale|fayetteville|lowell|bella vista|siloam springs|centerton|cave springs|northwest arkansas|nwa)\b/i,
     ar: /\b(arkansas|little rock|bentonville|rogers|springdale|fayetteville|lowell|bella vista|siloam springs|centerton|cave springs|north little rock|conway|fort smith|jonesboro)\b|,\s*ar\b/i
   };
+  // ---- is a location in the United States? ----
+  // Order matters: an explicit "United States" wins; a country name rules a place out;
+  // a US state (abbreviation or name) makes it US even for towns that share a foreign
+  // name ("London, KY"); then well-known foreign cities; then well-known US cities written
+  // without a state. Anything left is unknown and counts as not US.
+  const US_ABBR = 'AL AK AZ AR CA CO CT DE DC FL GA HI ID IL IN IA KS KY LA ME MD MA MI MN MS MO MT NE NV NH NJ NM NY NC ND OH OK OR PA RI SC SD TN TX UT VT VA WA WV WI WY PR'.split(' ');
+  // String.raw keeps the backslashes; case-sensitive on purpose ("In" is not Indiana)
+  const US_ABBR_RE = new RegExp(String.raw`(?:^|[\s,/(-])(` + US_ABBR.join('|') + String.raw`)(?=$|[\s,/)-])`);
+  const US_STATE_RE = /\b(alabama|alaska|arizona|arkansas|california|colorado|connecticut|delaware|florida|hawaii|idaho|illinois|indiana|iowa|kansas|kentucky|louisiana|maine|maryland|massachusetts|michigan|minnesota|mississippi|missouri|montana|nebraska|nevada|new hampshire|new jersey|new mexico|new york|north carolina|north dakota|ohio|oklahoma|oregon|pennsylvania|rhode island|south carolina|south dakota|tennessee|texas|utah|vermont|virginia|washington|west virginia|wisconsin|wyoming|puerto rico|district of columbia|georgia)\b/i;
+  const US_WORD_RE = /\b(united states|usa|u\.s\.a?\.?)(?!\w)/i;
+  const COUNTRY_RE = /\b(united kingdom|uk|england|scotland|wales|ireland|india|china|hong kong|japan|singapore|philippines|poland|germany|france|netherlands|spain|switzerland|luxembourg|canada|quebec|british columbia|alberta|brazil|argentina|colombia|chile|peru|australia|new zealand|israel|emirates|uae|korea|taiwan|malaysia|thailand|vietnam|indonesia|italy|belgium|sweden|norway|denmark|finland|austria|czech|romania|hungary|portugal|greece|turkey(?! plant)|egypt|south africa|nigeria|kenya|saudi arabia|qatar|bahrain|costa rica|panama|prince edward island|nova scotia|new brunswick|manitoba|saskatchewan|newfoundland)\b|(?<!new )\bmexico\b|\bontario\b(?!,?\s*CA\b)/i;
+  const FOREIGN_CITY_RE = /\b(london|mumbai|bangalore|bengaluru|hyderabad|gurugram|gurgaon|chennai|pune|noida|tokyo|manila|cluj|edinburgh|glasgow|krakow|warsaw|warszawa|gdansk|toronto|nottingham|bournemouth|dublin|kilkenny|sydney|melbourne|frankfurt|paris|geneve|geneva|zurich|shanghai|beijing|shenzhen|hangzhou|seoul|taipei|kuala lumpur|buenos aires|sao paulo|alabang|tbilisi|eng)\b/i;
+  const US_CITY_RE = /\b(arlington|pnc plaza|tysons corner|boston|dallas|fort worth|new york|nyc|chicago|tempe|charlotte|fort mill(?:charlotte)?|san francisco|houston|austin|atlanta|denver|seattle|los angeles|philadelphia|pittsburgh|minneapolis|miami|phoenix|irving|plano|columbus|cleveland|princeton|wilmington|jersey city|newark|mclean|richmond|nashville|san antonio|san diego|san jose|baltimore|washington|detroit|st\.? louis|kansas city|salt lake city|las vegas|portland|raleigh|tampa|orlando|jacksonville|indianapolis|cincinnati|milwaukee|omaha|little rock|bentonville|springdale|rogers|fayetteville)\b/i;
+
+  // Canadian provinces written as abbreviations ("Markham, ON", "ON; BC")
+  const CA_PROVINCE_RE = new RegExp(String.raw`(?:^|[\s,;/(-])(ON|BC|QC|AB|NS|NB|MB|SK|PE|NL)(?=$|[\s,;/)-])`);
+
+  function isUS(location) {
+    const t = (location || '').replace(/\(\+\d+ more\)/, '').trim();
+    if (!t) return false;
+    if (US_WORD_RE.test(t)) return true;
+    if (/\btbilisi\b/i.test(t)) return false;                 // Georgia the country
+    if (COUNTRY_RE.test(t) || CA_PROVINCE_RE.test(t)) return false;
+    if (US_ABBR_RE.test(t) || US_STATE_RE.test(t)) return true;
+    if (FOREIGN_CITY_RE.test(t)) return false;
+    return US_CITY_RE.test(t);
+  }
+
+  // a posting whose board gave no usable place (empty or just "Multiple locations")
+  function isUnclearLocation(location) {
+    const t = (location || '').trim().toLowerCase();
+    return t === '' || t === 'multiple locations' || t === 'remote - national';
+  }
+
   function inRegion(location, region) {
     if (!region || region === 'all') return true;
+    if (region === 'us') return isUS(location);
     return REGIONS[region].test(location || '');
   }
 
@@ -108,8 +143,8 @@
   }
 
   /* 3. Open postings per employer as of the last run. */
-  function openByEmployer(rows, roleOnly) {
-    const m = countBy(rows.filter(function (r) { return r.status === 'open' && (!roleOnly || r.in_role); }),
+  function openByEmployer(rows, roleOnly, region) {
+    const m = countBy(rows.filter(function (r) { return r.status === 'open' && (!roleOnly || r.in_role) && inRegion(r.location, region); }),
       function (r) { return r.employer; });
     return Array.from(m, function (e) { return { name: e[0], count: e[1] }; })
       .sort(function (a, b) { return b.count - a.count || (a.name < b.name ? -1 : 1); });
@@ -142,10 +177,18 @@
   /* 6. Top locations among open postings (optionally within a region or only my role). */
   function topLocations(rows, opts) {
     opts = opts || {};
-    const m = countBy(rows.filter(function (r) {
-      return r.status === 'open' && (!opts.roleOnly || r.in_role) && r.location && inRegion(r.location, opts.region);
-    }), function (r) { return r.location; });
-    return Array.from(m, function (e) { return { name: e[0], count: e[1] }; })
+    // "McLean VA (+3 more)" and "McLean, VA" are the same place: group on the letters and digits
+    const key = function (l) { return l.replace(/\(\+\d+ more\)/, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim(); };
+    const places = new Map();
+    rows.forEach(function (r) {
+      if (r.status !== 'open' || (opts.roleOnly && !r.in_role) || !r.location || !inRegion(r.location, opts.region)) return;
+      const k = key(r.location);
+      const p = places.get(k) || { name: r.location.replace(/\s*\(\+\d+ more\)/, ''), count: 0 };
+      p.count++;
+      if (r.location.indexOf('(+') < 0 && p.name.indexOf(',') < 0) p.name = r.location;  // prefer the tidy "City, ST" spelling
+      places.set(k, p);
+    });
+    return Array.from(places.values())
       .sort(function (a, b) { return b.count - a.count || (a.name < b.name ? -1 : 1); })
       .slice(0, opts.n || 10);
   }
@@ -153,7 +196,7 @@
   const api = {
     parseCSV: parseCSV, parseHistory: parseHistory, dayNum: dayNum, addDays: addDays,
     diffDays: diffDays, eachDay: eachDay, lastRunDate: lastRunDate, firstDate: firstDate,
-    median: median, inRegion: inRegion, REGIONS: REGIONS, newPerDay: newPerDay,
+    median: median, inRegion: inRegion, isUS: isUS, isUnclearLocation: isUnclearLocation, REGIONS: REGIONS, newPerDay: newPerDay,
     removedPerDay: removedPerDay, openByEmployer: openByEmployer, daysOpen: daysOpen,
     removedWithinSeven: removedWithinSeven, topLocations: topLocations
   };

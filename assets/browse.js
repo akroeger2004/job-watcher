@@ -15,12 +15,12 @@ App.boot('browse', function (root, data) {
     try { localStorage.setItem(KEY, JSON.stringify(Array.from(shortlist))); } catch (e) { /* ignore */ }
   }
 
-  const state = { role: 'mine', region: 'all', employer: '', location: '', days: '', q: '', sort: 'new', starred: false, limit: 100 };
+  const state = { role: 'mine', region: 'us', employer: '', location: '', days: '', q: '', sort: 'new', starred: false, limit: 100 };
   const DAY_BANDS = { '': null, '0-1': [0, 1], '2-7': [2, 7], '8-14': [8, 14], '15-30': [15, 30], '31+': [31, Infinity] };
 
-  function matches(r) {
+  function matches(r, ignoreRegion) {
     if (state.role === 'mine' && !r.in_role) return false;
-    if (!Calc.inRegion(r.location, state.region)) return false;
+    if (!ignoreRegion && !Calc.inRegion(r.location, state.region)) return false;
     if (state.employer && r.employer !== state.employer) return false;
     if (state.location && r.location.toLowerCase().indexOf(state.location.toLowerCase()) < 0) return false;
     const band = DAY_BANDS[state.days];
@@ -50,13 +50,17 @@ App.boot('browse', function (root, data) {
   const topPlaces = Calc.topLocations(open, { n: 60 }).map(function (l) { return l.name; });
   const results = el('div', { class: 'card', 'aria-live': 'polite' });
   const count = el('p', { class: 'result-count' });
+  const note = el('p', { class: 'muted', style: 'margin:-4px 0 8px;font-size:.875rem' });
 
   function render() {
     const list = visible();
     const shown = list.slice(0, state.limit);
     count.textContent = state.starred
       ? App.fmtInt(list.length) + ' on your shortlist (all filters except search are ignored here)'
-      : App.fmtInt(list.length) + ' open posting' + (list.length === 1 ? '' : 's') + (state.role === 'mine' ? ' in your role' : '');
+      : App.fmtInt(list.length) + ' open posting' + (list.length === 1 ? '' : 's') + (state.role === 'mine' ? ' in your role' : '') + (state.region === 'us' ? ' in the United States' : '');
+    // postings whose board gives no usable location are not shown as US; say how many are left out
+    const unclear = state.region === 'us' && !state.starred ? open.filter(function (r) { return matches(r, true) && !Calc.isUS(r.location) && Calc.isUnclearLocation(r.location); }).length : 0;
+    note.textContent = unclear ? App.fmtInt(unclear) + ' more ' + (unclear === 1 ? 'posting has' : 'postings have') + ' no clear location and ' + (unclear === 1 ? 'is' : 'are') + ' left out. Choose Worldwide to see ' + (unclear === 1 ? 'it' : 'them') + '.' : '';
     results.replaceChildren();
     if (!list.length) {
       results.append(el('p', { class: 'empty', text: state.starred ? 'Star a posting to save it here.' : 'No postings match. Try switching to All postings or clearing a filter.' }));
@@ -117,11 +121,11 @@ App.boot('browse', function (root, data) {
   const locList = el('datalist', { id: 'places' }, topPlaces.map(function (p) { return el('option', { value: p }); }));
   root.append(
     el('header', { class: 'page-head' }, el('h1', { text: 'Browse' }),
-      el('p', { class: 'muted', text: 'Open postings as of ' + lastRun + '. Your role means entry-level FP&A and wealth management titles.' })),
+      el('p', { class: 'muted', text: 'Open postings as of ' + lastRun + '. Your role means entry-level FP&A and wealth management titles. Jobs are limited to the United States unless you choose Worldwide.' })),
     el('section', { class: 'card' },
       el('div', { class: 'chips' },
         App.switcher([{ value: 'mine', label: 'My role' }, { value: 'all', label: 'All postings' }], state.role, function (v) { state.role = v; changed(); }, 'Which postings'),
-        App.switcher([{ value: 'all', label: 'Everywhere' }, { value: 'dfw', label: 'DFW' }, { value: 'nwa', label: 'NW Arkansas' }, { value: 'ar', label: 'All Arkansas' }],
+        App.switcher([{ value: 'us', label: 'United States' }, { value: 'dfw', label: 'DFW' }, { value: 'nwa', label: 'NW Arkansas' }, { value: 'ar', label: 'All Arkansas' }, { value: 'all', label: 'Worldwide' }],
           state.region, function (v) { state.region = v; changed(); }, 'Region'),
         starBtn),
       el('div', { class: 'controls' },
@@ -134,6 +138,6 @@ App.boot('browse', function (root, data) {
         })(), locList),
         select('Days open', [['', 'Any'], ['0-1', '0 to 1 day'], ['2-7', '2 to 7 days'], ['8-14', '8 to 14 days'], ['15-30', '15 to 30 days'], ['31+', '31 days or more']], 'days'),
         select('Sort by first seen', [['new', 'Newest first'], ['old', 'Oldest first']], 'sort'))),
-    count, results);
+    count, note, results);
   render();
 });

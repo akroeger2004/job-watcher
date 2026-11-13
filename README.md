@@ -84,6 +84,27 @@ repository small.
 Employers that were tried and left out because their board has no login-free JSON feed: Walmart
 (its Workday endpoint rejects requests), Lockheed Martin (HTML only) and Hilltop (empty feed).
 
+## US-based jobs
+
+The jobs I want are in the United States, but the history deliberately keeps **every** posting
+an employer's board returns (the assignment requires it), including London, Bangalore or Hong
+Kong roles at the global employers. So the United States limit is applied when the site shows
+the data, not when the data is saved:
+
+- `isUS(location)` in `assets/calc.js` decides from the location text. An explicit "United
+  States" wins, then a country name or Canadian province rules a place out, then a US state
+  (abbreviation or name) makes it US, then well-known foreign cities, then well-known US cities
+  written without a state. A location that matches none of these counts as not US.
+- **Browse** and the lists on **Today** show the United States by default, with a switch for
+  Worldwide (and for DFW, Northwest Arkansas and all of Arkansas on Browse). Browse says how many
+  postings with no clear location are left out.
+- **Market** keeps the definitions in the assignment as its default (all postings), and has a
+  United States switch on the "open postings per employer" and "top locations" sections.
+- A Workday posting listed in several places only says "3 Locations", so its location is read
+  from the first segment of the posting's own URL, which is its primary place, and shown as
+  `McLean VA (+2 more)`. Postings that give no place at all stay "Multiple locations".
+- `tests/test_us_filter.py` runs the classifier on real location strings from the sources.
+
 ## The title rule
 
 `in_role` marks a posting as in my role. The rule lives in `jobwatcher/role.py` and is tested in
@@ -119,6 +140,7 @@ Every posting the employer's board returns is kept in the history; the rule only
 | `tests/test_history.py` | Tests of the first-seen, last-seen, removed and first-run logic and of the deterministic build |
 | `tests/test_pipeline.py` | Tests of the daily run: failed sources, status counts, same-day re-runs and issue text |
 | `tests/test_issue.py` | Tests of how the daily GitHub Issue is created, updated, reopened and the previous one closed |
+| `tests/test_us_filter.py` | Tests of the United States location check on real location strings |
 | `tests/test_market_calc.py` | Runs `assets/calc.js` under Node and checks every Market number against Python |
 | `pyproject.toml` | Project metadata and pytest settings |
 | `.gitignore`, `.gitattributes` | Ignore rules and line-ending rules (raw `.gz` files are binary) |
@@ -144,7 +166,9 @@ Every posting the employer's board returns is kept in the history; the rule only
 `employer`, `title`, `location`, `department`, `posted_date`, `url`, `in_role`, `first_run`,
 `first_seen`, `last_seen`, `status` (`open` or `removed`), `removed_date`. Dates are UTC dates
 (`YYYY-MM-DD`). A column a source does not provide is left empty for that source's rows (for
-example Workday has no department, and its "30+ days ago" has no posted date).
+example Workday has no department, and its "30+ days ago" has no posted date). For a Workday
+posting listed in several places, `location` is its primary place with a count of the others,
+such as `McLean VA (+2 more)`.
 
 `data/status.json` keys: `run_time`, `first_run_date`, `days_with_success`, `open`, `new_today`
 (first seen in the latest run, leaving out first-run postings), `removed_today`, and `sources`

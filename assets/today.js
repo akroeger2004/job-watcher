@@ -68,11 +68,19 @@ App.boot('today', function (root, data) {
     return box;
   }
 
-  const section = function (title, list, none) {
-    return el('section', { class: 'card' },
-      el('h2', { text: title + ' (' + App.fmtInt(list.length) + ')' }),
+  // the lists show US-based postings by default; the counts above are for every posting
+  let where = 'us';
+  const lists = el('div');
+  const section = function (title, all, none) {
+    const list = all.filter(function (r) { return Calc.inRegion(r.location, where); });
+    const heading = title + ' (' + App.fmtInt(list.length) + (where === 'us' ? ' in the US of ' + App.fmtInt(all.length) : '') + ')';
+    return el('section', { class: 'card' }, el('h2', { text: heading }),
       list.length ? postingList(list) : el('p', { class: 'muted', text: none }));
   };
-  root.append(section('New postings', newRows, 'No postings first seen in the latest run.'));
-  root.append(section('Removed postings', removedRows, 'No postings removed in the latest run.'));
+  const drawLists = function () {
+    lists.replaceChildren(section('New postings', newRows, 'No postings first seen in the latest run.'),
+      section('Removed postings', removedRows, 'No postings removed in the latest run.'));
+  };
+  root.append(el('div', { class: 'scope' }, App.switcher([{ value: 'us', label: 'United States' }, { value: 'all', label: 'Worldwide' }], where, function (v) { where = v; drawLists(); }, 'Where the postings are')), lists);
+  drawLists();
 });
