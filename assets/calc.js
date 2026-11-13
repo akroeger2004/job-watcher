@@ -177,18 +177,29 @@
   /* 6. Top locations among open postings (optionally within a region or only my role). */
   function topLocations(rows, opts) {
     opts = opts || {};
-    // "McLean VA (+3 more)" and "McLean, VA" are the same place: group on the letters and digits
-    const key = function (l) { return l.replace(/\(\+\d+ more\)/, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim(); };
+    // "McLean VA (+3 more)", "McLean, VA" and "McLean, VA, United States" are one place: group on
+    // letters and digits, drop a trailing country, and write a trailing state name as its abbreviation
+    const STATES = { alabama: 'al', alaska: 'ak', arizona: 'az', arkansas: 'ar', california: 'ca', colorado: 'co', connecticut: 'ct', delaware: 'de', florida: 'fl', georgia: 'ga', hawaii: 'hi', idaho: 'id', illinois: 'il', indiana: 'in', iowa: 'ia', kansas: 'ks', kentucky: 'ky', louisiana: 'la', maine: 'me', maryland: 'md', massachusetts: 'ma', michigan: 'mi', minnesota: 'mn', mississippi: 'ms', missouri: 'mo', montana: 'mt', nebraska: 'ne', nevada: 'nv', 'new hampshire': 'nh', 'new jersey': 'nj', 'new mexico': 'nm', 'new york': 'ny', 'north carolina': 'nc', 'north dakota': 'nd', ohio: 'oh', oklahoma: 'ok', oregon: 'or', pennsylvania: 'pa', 'rhode island': 'ri', 'south carolina': 'sc', 'south dakota': 'sd', tennessee: 'tn', texas: 'tx', utah: 'ut', vermont: 'vt', virginia: 'va', washington: 'wa', 'west virginia': 'wv', wisconsin: 'wi', wyoming: 'wy' };
+    const key = function (l) {
+      let k = l.replace(/\(\+\d+ more\)/, '').toLowerCase().replace(/\b(united states|usa)\b/g, ' ').replace(/[^a-z0-9]+/g, ' ').trim();
+      Object.keys(STATES).forEach(function (n) {
+        if (k.length > n.length + 1 && k.slice(-(n.length + 1)) === ' ' + n) k = k.slice(0, -n.length) + STATES[n];
+      });
+      return k;
+    };
+    // prefer the tidy "City, ST" spelling as the label
+    const tidy = function (l) { return /^[^,]+, [A-Z]{2}$/.test(l) ? 2 : l.indexOf(',') >= 0 ? 1 : 0; };
     const places = new Map();
     rows.forEach(function (r) {
       if (r.status !== 'open' || (opts.roleOnly && !r.in_role) || !r.location || !inRegion(r.location, opts.region)) return;
       const k = key(r.location);
-      const p = places.get(k) || { name: r.location.replace(/\s*\(\+\d+ more\)/, ''), count: 0 };
+      const label = r.location.replace(/\s*\(\+\d+ more\)/, '');
+      const p = places.get(k) || { name: label, count: 0, score: -1 };
       p.count++;
-      if (r.location.indexOf('(+') < 0 && p.name.indexOf(',') < 0) p.name = r.location;  // prefer the tidy "City, ST" spelling
+      if (tidy(label) > p.score) { p.name = label; p.score = tidy(label); }
       places.set(k, p);
     });
-    return Array.from(places.values())
+    return Array.from(places.values(), function (p) { return { name: p.name, count: p.count }; })
       .sort(function (a, b) { return b.count - a.count || (a.name < b.name ? -1 : 1); })
       .slice(0, opts.n || 10);
   }

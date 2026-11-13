@@ -72,3 +72,19 @@ def test_top_locations_group_spellings_of_the_same_place():
     top = run(f"C.topLocations({rows},{{n:5}})")
     assert top[0]["count"] == 3 and top[0]["name"].startswith("McLean")
     assert [t["count"] for t in top] == [3, 1]
+
+
+def test_top_locations_merge_state_names_and_a_trailing_country():
+    spellings = ["New York, NY", "New York, NY, United States", "New York, New York", "New York NY (+2 more)",
+                 "Boston, Massachusetts", "Boston, MA"]
+    rows = "[" + ",".join(f"{{status:'open',in_role:false,location:{json.dumps(s)}}}" for s in spellings) + "]"
+    top = run(f"C.topLocations({rows},{{n:5}})")
+    assert [(t["name"], t["count"]) for t in top] == [("New York, NY", 4), ("Boston, MA", 2)]
+
+
+def test_top_locations_do_not_merge_different_cities_or_states():
+    rows = ("[{status:'open',in_role:false,location:'Arlington, TX'},"
+            "{status:'open',in_role:false,location:'Arlington, VA'},"
+            "{status:'open',in_role:false,location:'Washington, DC'},"
+            "{status:'open',in_role:false,location:'Washington, Washington'}]")
+    assert len(run(f"C.topLocations({rows},{{n:9}})")) == 4
