@@ -18,7 +18,7 @@ ROLE = re.compile(
     r"|portfolio analyst|portfolio associate|research analyst|planning analyst"
     r"|wealth|financial advis[eo]r|financial planner|private client|private bank"
     r"|client associate|client service associate|relationship associate"
-    r"|advisor associate|advisor development|bstars analystb",
+    r"|advisor associate|advisor development|\bstars analyst\b",
     re.I,
 )
 
