@@ -1,8 +1,8 @@
 {
-  "run_time": "2026-11-13T21:29:34Z",
+  "run_time": "2026-11-13T21:34:18Z",
   "first_run_date": "2026-11-13",
   "days_with_success": 1,
-  "open": 9302,
+  "open": 11169,
   "new_today": 0,
   "removed_today": 0,
   "sources": [
@@ -24,7 +24,7 @@
     {
       "name": "capitalone",
       "ok": true,
-      "count": 2057
+      "count": 2059
     },
     {
       "name": "carlyle",
@@ -54,7 +54,7 @@
     {
       "name": "jpmorgan",
       "ok": true,
-      "count": 2963
+      "count": 2962
     },
     {
       "name": "lpl",
@@ -68,8 +68,8 @@
     },
     {
       "name": "pnc",
-      "ok": false,
-      "count": 0
+      "ok": true,
+      "count": 1867
     },
     {
       "name": "statestreet",
@@ -89,7 +89,7 @@
     {
       "name": "troweprice",
       "ok": true,
-      "count": 129
+      "count": 128
     },
     {
       "name": "tyson",
