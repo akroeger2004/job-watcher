@@ -79,8 +79,10 @@ App.boot('browse', function (root, data) {
       if (state.starred) render();
       else { star.setAttribute('aria-pressed', String(shortlist.has(r.posting_id))); star.textContent = shortlist.has(r.posting_id) ? '★' : '☆'; }
     });
+    // first-run postings were already open when watching began, so only a minimum is known
     const days = r.status === 'removed' ? 'removed ' + r.removed_date
-      : 'open ' + r.days_open + (r.first_run ? '+' : '') + ' day' + (r.days_open === 1 ? '' : 's');
+      : r.first_run ? 'open before tracking began'
+      : 'open ' + r.days_open + ' day' + (r.days_open === 1 ? '' : 's');
     return el('div', { class: 'job' },
       el('div', { class: 'title' }, r.title || '(untitled)', r.in_role ? el('span', { class: 'role-tag', text: 'Your role' }) : null),
       el('div', { class: 'actions' }, star,

@@ -20,11 +20,14 @@
       else if (k.slice(0, 2) === 'on') node.addEventListener(k.slice(2), v);
       else node.setAttribute(k, v === true ? '' : v);
     });
-    for (let i = 2; i < arguments.length; i++) {
-      const c = arguments[i];
-      if (c == null || c === false) continue;
-      node.appendChild(typeof c === 'string' ? document.createTextNode(c) : c);
-    }
+    (function add(list) {
+      for (let i = 0; i < list.length; i++) {
+        const c = list[i];
+        if (c == null || c === false) continue;
+        if (Array.isArray(c)) add(c);   // .map() results are passed as one array
+        else node.appendChild(typeof c === 'string' || typeof c === 'number' ? document.createTextNode(String(c)) : c);
+      }
+    })(Array.prototype.slice.call(arguments, 2));
     return node;
   }
 
