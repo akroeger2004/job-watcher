@@ -79,7 +79,7 @@ SOURCES = [
 # --------------------------------------------------------------------------- http
 
 
-def http_json(url, body=None, headers=None, retries=3, timeout=60):
+def http_json(url, body=None, headers=None, retries=5, timeout=60):
     """GET (or POST when body is given) and decode JSON, retrying transient errors."""
     hdrs = {"User-Agent": UA, "Accept": "application/json"}
     data = None
@@ -99,7 +99,7 @@ def http_json(url, body=None, headers=None, retries=3, timeout=60):
                 raise
         except (urllib.error.URLError, TimeoutError, ConnectionError) as exc:
             last = exc
-        time.sleep(2 * (attempt + 1))
+        time.sleep(3 * (attempt + 1))
     raise last
 
 
