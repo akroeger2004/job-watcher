@@ -84,32 +84,26 @@ repository small.
 Employers that were tried and left out because their board has no login-free JSON feed: Walmart
 (its Workday endpoint rejects requests), Lockheed Martin (HTML only) and Hilltop (empty feed).
 
-## US-based jobs only
+## US-based jobs
 
-The jobs I am looking for are in the United States, so **`data/history.csv` contains only
-US-based postings**, and every page of the site shows only those. Postings in London, Bangalore,
-Hong Kong and so on are dropped when the history is built.
+The jobs I want are in the United States, but the history deliberately keeps **every** posting
+an employer's board returns (the assignment requires it), including London, Bangalore or Hong
+Kong roles at the global employers. So the United States limit is applied when the site shows
+the data, not when the data is saved:
 
-This is a deliberate choice, and it is easy to undo: the raw files in `data/raw/` still hold
-**everything each board returned**, nothing is filtered when a source is fetched, and the history
-is always rebuilt from the raw files. To bring the foreign postings back, change `is_us` in
-`jobwatcher/location.py` and run `python -m jobwatcher.build`.
-
-- `is_us(location)` in `jobwatcher/location.py` decides from the location text. An explicit
-  "United States" wins, then a country name or Canadian province rules a place out, then a US
-  state (abbreviation or name) makes it US (so "London, KY" counts), then well-known foreign
-  cities rule a place out, then well-known US cities written without a state make it US. A
-  location that matches none of these (empty, "Multiple locations", an unknown place) is not
-  counted as US and is left out.
+- `isUS(location)` in `assets/calc.js` decides from the location text. An explicit "United
+  States" wins, then a country name or Canadian province rules a place out, then a US state
+  (abbreviation or name) makes it US, then well-known foreign cities, then well-known US cities
+  written without a state. A location that matches none of these counts as not US.
+- **Browse** and the lists on **Today** show the United States by default, with a switch for
+  Worldwide (and for DFW, Northwest Arkansas and all of Arkansas on Browse). Browse says how many
+  postings with no clear location are left out.
+- **Market** keeps the definitions in the assignment as its default (all postings), and has a
+  United States switch on the "open postings per employer" and "top locations" sections.
 - A Workday posting listed in several places only says "3 Locations", so its location is read
   from the first segment of the posting's own URL, which is its primary place, and shown as
-  `McLean VA (+2 more)`. Postings that give no place at all stay "Multiple locations" and are left out.
-- The Browse page has region switches for the whole US, Dallas-Fort Worth, Northwest Arkansas and
-  all of Arkansas.
-- `status.json` `count` for a source is how many postings its board returned (all countries);
-  `open`, `new_today` and `removed_today` count US postings in the history.
-- `tests/test_location.py` runs the rule on real location strings from the sources and tests that
-  the history build drops non-US postings while the raw file keeps them.
+  `McLean VA (+2 more)`. Postings that give no place at all stay "Multiple locations".
+- `tests/test_us_filter.py` runs the classifier on real location strings from the sources.
 
 ## The title rule
 
@@ -126,8 +120,7 @@ is always rebuilt from the raw files. To bring the foreign postings back, change
    lead, chief, staff, executive, manager, partner, level III or higher) and is not an engineering
    or internship title (software, engineer, developer, intern, co-op, recruiter, compliance, ...).
 
-Every US-based posting the employer's board returns is kept in the history, whether or not it is in
-my role; the title rule only sets `in_role`.
+Every posting the employer's board returns is kept in the history; the rule only sets `in_role`.
 
 ## Files
 
@@ -135,7 +128,6 @@ my role; the title rule only sets `in_role`.
 |---|---|
 | `jobwatcher/sources.py` | The 19 sources, how to call each applicant tracking system, and the conversion of each to the common columns |
 | `jobwatcher/role.py` | The title rule |
-| `jobwatcher/location.py` | The rule that decides whether a posting is located in the United States |
 | `jobwatcher/rawio.py` | Writes and reads the compressed raw files |
 | `jobwatcher/build.py` | Builds `data/history.csv` from the raw files (`python -m jobwatcher.build`) |
 | `jobwatcher/status.py` | Builds `data/status.json` |
@@ -148,8 +140,7 @@ my role; the title rule only sets `in_role`.
 | `tests/test_history.py` | Tests of the first-seen, last-seen, removed and first-run logic and of the deterministic build |
 | `tests/test_pipeline.py` | Tests of the daily run: failed sources, status counts, same-day re-runs and issue text |
 | `tests/test_issue.py` | Tests of how the daily GitHub Issue is created, updated, reopened and the previous one closed |
-| `tests/test_location.py` | Tests of the United States location rule on real location strings, and that the history keeps only US postings |
-| `tests/test_top_locations.py` | Tests (run under Node) of how the Market page groups spellings of the same place |
+| `tests/test_us_filter.py` | Tests of the United States location check on real location strings |
 | `tests/test_market_calc.py` | Runs `assets/calc.js` under Node and checks every Market number against Python |
 | `pyproject.toml` | Project metadata and pytest settings |
 | `.gitignore`, `.gitattributes` | Ignore rules and line-ending rules (raw `.gz` files are binary) |

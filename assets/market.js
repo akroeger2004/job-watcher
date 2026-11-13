@@ -13,7 +13,7 @@ App.boot('market', function (root, data) {
   const plural = function (n, w) { return fmt(n) + ' ' + w + (n === 1 ? '' : 's'); };
 
   root.append(el('header', { class: 'page-head' }, el('h1', { text: 'Market' }),
-    el('p', { class: 'muted', text: 'Built from ' + fmt(rows.length) + ' postings seen from ' + first + ' to ' + last + ' (' + plural(span + 1, 'day') + ' of history). "Your role" means entry-level FP&A and wealth management titles. Only jobs located in the United States are tracked.' })));
+    el('p', { class: 'muted', text: 'Built from ' + fmt(rows.length) + ' postings seen from ' + first + ' to ' + last + ' (' + plural(span + 1, 'day') + ' of history). "Your role" means entry-level FP&A and wealth management titles.' })));
 
   function section(heading, paragraph, content) {
     root.append(el('section', { class: 'market-section' }, el('h2', { text: heading }), el('p', { text: paragraph }), content));
@@ -53,17 +53,18 @@ App.boot('market', function (root, data) {
     const note = el('p');
     const wrap = el('section', { class: 'market-section' });
     const h = el('h2');
-    let role = 'all';
+    let role = 'all', where = 'all';
     function draw() {
-      const items = Calc.openByEmployer(rows, role === 'mine');
+      const items = Calc.openByEmployer(rows, role === 'mine', where);
       const total = sum(items.map(function (i) { return i.count; }));
       h.textContent = items.length
         ? items[0].name + ' has the most open postings (' + fmt(items[0].count) + ' of ' + fmt(total) + ')'
         : 'No open postings match';
-      note.textContent = 'Open postings per employer as of the last run (' + last + ')' + ', counting every US-based posting the employer\'s board returns' + (role === 'mine' ? ', and only titles in your role.' : '.');
+      note.textContent = 'Open postings per employer as of the last run (' + last + ')' + (where === 'us' ? ', counting only postings located in the United States' : ', counting every posting the employer\'s board returns') + (role === 'mine' ? ', and only titles in your role.' : '.');
       holder.replaceChildren(Charts.bars({ title: role === 'mine' ? 'Your role' : 'All postings', subtitle: 'Open per employer', items: items, color: role === 'mine' ? 'role' : 'all', valueHeader: 'Open postings', emptyText: 'No open postings in your role yet.' }));
     }
-    wrap.append(h, note, el('div', { class: 'scope' }, App.switcher([{ value: 'all', label: 'All postings' }, { value: 'mine', label: 'My role' }], role, function (v) { role = v; draw(); }, 'Which postings')), holder);
+    wrap.append(h, note, el('div', { class: 'scope' }, App.switcher([{ value: 'all', label: 'All postings' }, { value: 'mine', label: 'My role' }], role, function (v) { role = v; draw(); }, 'Which postings'),
+      App.switcher([{ value: 'all', label: 'Worldwide' }, { value: 'us', label: 'United States' }], where, function (v) { where = v; draw(); }, 'Where')), holder);
     root.append(wrap);
     draw();
   })();
@@ -101,7 +102,7 @@ App.boot('market', function (root, data) {
     const holder = el('div'), h = el('h2'), note = el('p');
     const wrap = el('section', { class: 'market-section' });
     let region = 'all', role = 'all';
-    const names = { all: 'the United States', dfw: 'the Dallas-Fort Worth area', nwa: 'Northwest Arkansas', ar: 'Arkansas' };
+    const names = { all: 'the whole world', us: 'the United States', dfw: 'the Dallas-Fort Worth area', nwa: 'Northwest Arkansas', ar: 'Arkansas' };
     function draw() {
       const items = Calc.topLocations(rows, { region: region, roleOnly: role === 'mine', n: 10 });
       h.textContent = items.length ? items[0].name + ' leads with ' + fmt(items[0].count) + ' open postings' : 'No open postings in ' + names[region];
@@ -112,7 +113,7 @@ App.boot('market', function (root, data) {
     }
     wrap.append(h, note,
       el('div', { class: 'scope' },
-        App.switcher([{ value: 'all', label: 'All US' }, { value: 'dfw', label: 'DFW' }, { value: 'nwa', label: 'NW Arkansas' }, { value: 'ar', label: 'All Arkansas' }], region, function (v) { region = v; draw(); }, 'Region'),
+        App.switcher([{ value: 'all', label: 'Worldwide' }, { value: 'us', label: 'United States' }, { value: 'dfw', label: 'DFW' }, { value: 'nwa', label: 'NW Arkansas' }, { value: 'ar', label: 'All Arkansas' }], region, function (v) { region = v; draw(); }, 'Region'),
         App.switcher([{ value: 'all', label: 'All postings' }, { value: 'mine', label: 'My role' }], role, function (v) { role = v; draw(); }, 'Which postings')),
       holder);
     root.append(wrap);

@@ -3,10 +3,7 @@
     python -m jobwatcher.build
 
 Nothing but the raw files is read, so running this again gives the same file, and a
-change to the title rule or the US location rule applies to every day of the history.
-
-Only postings located in the United States (jobwatcher/location.py) are kept in the
-history. The raw files still hold everything each board returned.
+change to the title rule applies to every day of the history.
 
 For each day with raw files, in date order, and for each source with a file that day:
   * a posting seen for the first time gets that day as first_seen;
@@ -20,7 +17,6 @@ import sys
 from datetime import date
 from pathlib import Path
 
-from .location import is_us
 from .rawio import list_raw, read_raw
 from .role import in_role
 from .sources import convert
@@ -50,8 +46,6 @@ def build_history(raw_dir):
                     c = convert(env["ats"], posting, env["params"], run_date)
                 except (KeyError, TypeError):
                     continue  # no id to track it by
-                if not is_us(c["location"]):
-                    continue  # the history keeps US-based postings only; the raw file keeps all
                 pid = f"{source}:{c['source_id']}"
                 if pid in listed:
                     continue
