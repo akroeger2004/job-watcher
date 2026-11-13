@@ -129,3 +129,20 @@ def test_issue_puts_role_postings_first_and_stays_under_the_size_limit():
     assert len(body) < MAX_BODY + 5000
     assert body.index("Financial Analyst") < body.index("Job (0)")
     assert "…and" in body
+
+
+def test_a_failing_issue_publish_does_not_stop_the_run(tmp_path, monkeypatch):
+    def boom(title, body):
+        raise RuntimeError("gh is down")
+
+    monkeypatch.setattr(pipeline, "publish_issue", boom)
+    status = pipeline.run([A], fake_fetcher({"acme": ["a"]}), tmp_path, now=at("2026-11-01"),
+                          issue=True)
+    assert status["open"] == 1 and (tmp_path / "status.json").exists()
+
+
+def test_issue_is_published_with_the_date_title(tmp_path, monkeypatch):
+    seen = {}
+    monkeypatch.setattr(pipeline, "publish_issue", lambda t, b: seen.update(title=t, body=b))
+    pipeline.run([A], fake_fetcher({"acme": ["a"]}), tmp_path, now=at("2026-11-01"), issue=True)
+    assert seen["title"] == "2026-11-01"

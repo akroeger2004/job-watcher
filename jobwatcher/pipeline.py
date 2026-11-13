@@ -51,7 +51,10 @@ def run(sources=None, fetcher=fetch, data_dir=DATA, now=None, issue=False, worke
     write_status(status, Path(data_dir) / "status.json")
     title, body = render_issue(run_date, rows, status)
     if issue:
-        publish_issue(title, body)
+        try:
+            publish_issue(title, body)
+        except Exception as exc:  # the issue must never block the commit
+            print(f"WARNING: could not publish the issue: {exc!r}", file=sys.stderr)
     return status
 
 
