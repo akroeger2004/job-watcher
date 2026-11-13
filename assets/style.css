@@ -168,3 +168,11 @@ input[type="search"], input[type="text"], select {
 @media (prefers-reduced-motion: no-preference) {
   .bar, .hbar { transition: opacity .15s; }
 }
+
+/* narrow screens: let toggle groups shrink or scroll instead of overflowing */
+.seg-switch { max-width: 100%; }
+@media (max-width: 600px) {
+  .seg-switch { overflow-x: auto; }
+  .seg-switch button { padding: 8px 10px; font-size: .875rem; white-space: nowrap; }
+  .chips { gap: 8px; }
+}

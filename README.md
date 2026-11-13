@@ -112,7 +112,18 @@ Every posting the employer's board returns is kept in the history; the rule only
 | `jobwatcher/status.py` | Builds `data/status.json` |
 | `jobwatcher/issue.py` | Writes and publishes the daily GitHub Issue |
 | `jobwatcher/pipeline.py` | The daily run (`python -m jobwatcher.pipeline --issue`) |
-| `tests/` | pytest suite: source conversions, the title rule, first-seen / last-seen / removed logic, status, issues, and a check that the Market numbers match the history file |
+| `jobwatcher/__init__.py` | Marks `jobwatcher` as a Python package |
+| `tests/conftest.py` | Shared test helpers for building raw files |
+| `tests/test_role.py` | Tests of the title rule |
+| `tests/test_sources.py` | Tests of the conversion of each source to the common columns and of the fetchers |
+| `tests/test_history.py` | Tests of the first-seen, last-seen, removed and first-run logic and of the deterministic build |
+| `tests/test_pipeline.py` | Tests of the daily run: failed sources, status counts, same-day re-runs and issue text |
+| `tests/test_issue.py` | Tests of how the daily GitHub Issue is created, updated, reopened and the previous one closed |
+| `tests/test_market_calc.py` | Runs `assets/calc.js` under Node and checks every Market number against Python |
+| `pyproject.toml` | Project metadata and pytest settings |
+| `.gitignore`, `.gitattributes` | Ignore rules and line-ending rules (raw `.gz` files are binary) |
+| `data/raw/.gitkeep` | Keeps the raw data folder in the repository |
+| `README.md` | This file |
 | `.github/workflows/daily.yml` | Runs the pipeline every day and commits the data |
 | `.github/workflows/tests.yml` | Runs the tests on every push |
 | `data/raw/<date>/<source>.json.gz` | What each source returned that day |
