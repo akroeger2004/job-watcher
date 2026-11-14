@@ -1,10 +1,10 @@
 {
-  "run_time": "2026-11-14T17:11:47Z",
+  "run_time": "2026-11-14T21:29:01Z",
   "first_run_date": "2026-11-13",
   "days_with_success": 2,
-  "open": 11140,
-  "new_today": 44,
-  "removed_today": 73,
+  "open": 11136,
+  "new_today": 47,
+  "removed_today": 80,
   "sources": [
     {
       "name": "blackrock",
@@ -14,7 +14,7 @@
     {
       "name": "broadridge",
       "ok": true,
-      "count": 313
+      "count": 311
     },
     {
       "name": "cambridgeassociates",
@@ -74,7 +74,7 @@
     {
       "name": "statestreet",
       "ok": true,
-      "count": 1179
+      "count": 1176
     },
     {
       "name": "stephens",
@@ -94,7 +94,7 @@
     {
       "name": "tyson",
       "ok": true,
-      "count": 727
+      "count": 728
     },
     {
       "name": "welltower",
