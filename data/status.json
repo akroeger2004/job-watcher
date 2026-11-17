@@ -1,20 +1,20 @@
 {
-  "run_time": "2026-11-16T21:05:17Z",
+  "run_time": "2026-11-17T00:48:15Z",
   "first_run_date": "2026-11-13",
-  "days_with_success": 4,
-  "open": 10752,
-  "new_today": 335,
-  "removed_today": 666,
+  "days_with_success": 5,
+  "open": 10634,
+  "new_today": 61,
+  "removed_today": 182,
   "sources": [
     {
       "name": "blackrock",
       "ok": true,
-      "count": 270
+      "count": 269
     },
     {
       "name": "broadridge",
       "ok": true,
-      "count": 303
+      "count": 304
     },
     {
       "name": "cambridgeassociates",
@@ -24,7 +24,7 @@
     {
       "name": "capitalone",
       "ok": true,
-      "count": 2072
+      "count": 2069
     },
     {
       "name": "carlyle",
@@ -34,7 +34,7 @@
     {
       "name": "firstcitizens",
       "ok": true,
-      "count": 400
+      "count": 396
     },
     {
       "name": "fortress",
@@ -54,7 +54,7 @@
     {
       "name": "jpmorgan",
       "ok": true,
-      "count": 2916
+      "count": 2912
     },
     {
       "name": "lpl",
@@ -69,12 +69,12 @@
     {
       "name": "pnc",
       "ok": true,
-      "count": 1544
+      "count": 1415
     },
     {
       "name": "statestreet",
       "ok": true,
-      "count": 1146
+      "count": 1149
     },
     {
       "name": "stephens",
@@ -89,12 +89,12 @@
     {
       "name": "troweprice",
       "ok": true,
-      "count": 126
+      "count": 127
     },
     {
       "name": "tyson",
       "ok": true,
-      "count": 733
+      "count": 751
     },
     {
       "name": "welltower",
