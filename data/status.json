@@ -1,30 +1,30 @@
 {
-  "run_time": "2026-11-19T23:35:21Z",
+  "run_time": "2026-11-20T19:08:19Z",
   "first_run_date": "2026-11-13",
-  "days_with_success": 7,
-  "open": 10068,
-  "new_today": 363,
-  "removed_today": 362,
+  "days_with_success": 8,
+  "open": 9998,
+  "new_today": 215,
+  "removed_today": 307,
   "sources": [
     {
       "name": "blackrock",
       "ok": true,
-      "count": 287
+      "count": 290
     },
     {
       "name": "broadridge",
       "ok": true,
-      "count": 308
+      "count": 309
     },
     {
       "name": "cambridgeassociates",
       "ok": true,
-      "count": 44
+      "count": 45
     },
     {
       "name": "capitalone",
       "ok": true,
-      "count": 2061
+      "count": 2053
     },
     {
       "name": "carlyle",
@@ -34,12 +34,12 @@
     {
       "name": "firstcitizens",
       "ok": true,
-      "count": 378
+      "count": 369
     },
     {
       "name": "fortress",
       "ok": true,
-      "count": 10
+      "count": 11
     },
     {
       "name": "gmfinancial",
@@ -49,17 +49,17 @@
     {
       "name": "invesco",
       "ok": true,
-      "count": 210
+      "count": 212
     },
     {
       "name": "jpmorgan",
       "ok": true,
-      "count": 2880
+      "count": 2859
     },
     {
       "name": "lpl",
       "ok": true,
-      "count": 327
+      "count": 321
     },
     {
       "name": "marcusmillichap",
@@ -69,17 +69,17 @@
     {
       "name": "pnc",
       "ok": true,
-      "count": 820
+      "count": 805
     },
     {
       "name": "statestreet",
       "ok": true,
-      "count": 1182
+      "count": 1183
     },
     {
       "name": "stephens",
       "ok": true,
-      "count": 21
+      "count": 19
     },
     {
       "name": "texascapital",
@@ -89,17 +89,17 @@
     {
       "name": "troweprice",
       "ok": true,
-      "count": 130
+      "count": 127
     },
     {
       "name": "tyson",
       "ok": true,
-      "count": 775
+      "count": 762
     },
     {
       "name": "welltower",
       "ok": true,
-      "count": 97
+      "count": 95
     }
   ]
 }
