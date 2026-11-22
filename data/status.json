@@ -1,10 +1,10 @@
 {
-  "run_time": "2026-11-22T18:33:48Z",
+  "run_time": "2026-11-22T22:28:04Z",
   "first_run_date": "2026-11-13",
   "days_with_success": 10,
-  "open": 9935,
-  "new_today": 2,
-  "removed_today": 27,
+  "open": 9926,
+  "new_today": 5,
+  "removed_today": 39,
   "sources": [
     {
       "name": "blackrock",
@@ -54,7 +54,7 @@
     {
       "name": "jpmorgan",
       "ok": true,
-      "count": 2848
+      "count": 2839
     },
     {
       "name": "lpl",
