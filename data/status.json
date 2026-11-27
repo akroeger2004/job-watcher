@@ -1,15 +1,15 @@
 {
-  "run_time": "2026-11-26T20:13:40Z",
+  "run_time": "2026-11-27T01:00:26Z",
   "first_run_date": "2026-11-13",
-  "days_with_success": 14,
-  "open": 10547,
-  "new_today": 131,
-  "removed_today": 138,
+  "days_with_success": 15,
+  "open": 10538,
+  "new_today": 1,
+  "removed_today": 10,
   "sources": [
     {
       "name": "blackrock",
       "ok": true,
-      "count": 295
+      "count": 293
     },
     {
       "name": "broadridge",
@@ -24,7 +24,7 @@
     {
       "name": "capitalone",
       "ok": true,
-      "count": 2051
+      "count": 2050
     },
     {
       "name": "carlyle",
@@ -54,7 +54,7 @@
     {
       "name": "jpmorgan",
       "ok": true,
-      "count": 2819
+      "count": 2817
     },
     {
       "name": "lpl",
@@ -69,12 +69,12 @@
     {
       "name": "pnc",
       "ok": true,
-      "count": 1433
+      "count": 1434
     },
     {
       "name": "statestreet",
       "ok": true,
-      "count": 1153
+      "count": 1148
     },
     {
       "name": "stephens",
